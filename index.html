@@ -36,5 +36,42 @@
   <!-- Fundraise Up Button -->
   <a href="#XJKDHSTQ">Donate Now</a>
 
+
+    <script>
+    // Wait until Fundraise Up is available
+    function onFundraiseUpReady(cb) {
+      if (window.FundraiseUp && typeof window.FundraiseUp.on === 'function') {
+        cb();
+        return;
+      }
+      setTimeout(function () { onFundraiseUpReady(cb); }, 200);
+    }
+  
+    onFundraiseUpReady(function () {
+      // 1) Checkout opened
+      FundraiseUp.on('checkoutOpen', function () {
+        gtag('event', 'checkout_open', {
+          event_category: 'fundraiseup',
+          event_label: 'Helping Hand'
+        });
+      });
+  
+      // 2) Donation completed (GA4 ecommerce-style)
+      FundraiseUp.on('donationComplete', function (data) {
+        // Defensive parsing (data shape may vary)
+        var donation = (data && (data.donation || data)) || {};
+        var amount = donation.amount || donation.total || 0;
+        var currency = donation.currency || 'USD';
+        var id = donation.id || donation.donationId || ('donation_' + Date.now());
+  
+        gtag('event', 'purchase', {
+          transaction_id: String(id),
+          value: Number(amount),
+          currency: String(currency)
+        });
+      });
+    });
+  </script>
+
 </body>
 </html>
